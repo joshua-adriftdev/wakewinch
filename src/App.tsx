@@ -1,24 +1,40 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from "react";
+import { SafeAreaView, StyleSheet, Text } from "react-native";
 
-export default function App() {
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Home } from "./screens/Home/Home";
+import { Notify } from "./screens/Notify/Notify";
+import { Read } from "./screens/Read/Read";
+import { Write } from "./screens/Write/Write";
+import { Provider } from "react-redux";
+import { store } from "./state/store";
+import { Connect } from "./screens/Connect/Connect";
+import { requestPermissions } from "./state/BluetoothLowEnergy/utils";
+
+const App = () => {
+  useEffect(() => {
+    requestPermissions();
+  }, []);
+
+  const Stack = createNativeStackNavigator();
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Notify" component={Notify} />
+          <Stack.Screen name="Read" component={Read} />
+          <Stack.Screen name="Write" component={Write} />
+          <Stack.Screen
+            name="Connect"
+            component={Connect}
+            options={{ presentation: "modal" }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: '#5cbeff'
-  }
-});
+export default App;
