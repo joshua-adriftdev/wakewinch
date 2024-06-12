@@ -37,7 +37,7 @@ bleMiddleware.startListening({
       if (device.name?.includes("HM") || device.name?.includes("Friyia")) {
         listenerApi.dispatch(setDevice(device));
       }
-      //listenerApi.dispatch(setDevice(device));
+      listenerApi.dispatch(setDevice(device));
     });
   },
 });
