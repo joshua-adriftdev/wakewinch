@@ -65,8 +65,11 @@ class BluetoothLeManager {
   sendString = async (message: string) => {
     const data = base64.encode(message);
     try {
-      if (!this.device || !this.characteristic) {
-        throw new Error("No connected device or characteristic not found");
+      if (!this.device) {
+        throw new Error("No connected device");
+      }
+      if (!this.characteristic) {
+        throw new Error("Characteristic not found");
       }
       await this.bleManager.writeCharacteristicWithResponseForDevice(
         this.device.id,

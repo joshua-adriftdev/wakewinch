@@ -1,43 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button } from 'react-native';
-import manager, { DeviceReference } from './state/Bluetooth/BluetoothManager';
+import React, { useEffect } from "react";
+import { SafeAreaView, StyleSheet, Text } from "react-native";
+
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Home } from "./screens/Home/Home";
+import { Notify } from "./screens/Notify/Notify";
+import { Read } from "./screens/Read/Read";
+import { Write } from "./screens/Write/Write";
+import { Provider } from "react-redux";
+import { store } from "./state/store";
+import { Connect } from "./screens/Connect/Connect";
+import { requestPermissions } from "./state/BluetoothLowEnergy/utils";
 
 const App = () => {
-  const [devices, setDevices] = useState<DeviceReference[]>([]);
-  const [connectedDevice, setConnectedDevice] = useState<string | null>(null);
+  useEffect(() => {
+    requestPermissions();
+  }, []);
 
-  const scanDevices = async () => {
-    const foundDevices: DeviceReference[] = [];
-    await manager.scanForDevices((device) => {
-      foundDevices.push(device);
-      setDevices([...foundDevices]);
-    });
-  };
-
-  const connectToDevice = async (deviceId: string) => {
-    await manager.connectToDevice(deviceId);
-    setConnectedDevice(deviceId);
-  };
-
+  const Stack = createNativeStackNavigator();
   return (
-    <View>
-      <Text>Bluetooth Devices:</Text>
-      <Button title="Scan for Devices" onPress={scanDevices} />
-      {devices.map((device) => (
-        <Button
-          key={device.id}
-          title={`Connect to ${device.name}`}
-          onPress={() => connectToDevice(device.id!)}
-        />
-      ))}
-      {connectedDevice && (
-        <View>
-          <Button title="Turn On LED" onPress={manager.turnOnLED} />
-          <Button title="Turn Off LED" onPress={manager.turnOffLED} />
-          <Button title="Flash LED" onPress={manager.flashLED} />
-        </View>
-      )}
-    </View>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Notify" component={Notify} />
+          <Stack.Screen name="Read" component={Read} />
+          <Stack.Screen name="Write" component={Write} />
+          <Stack.Screen
+            name="Connect"
+            component={Connect}
+            options={{ presentation: "modal" }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
 

@@ -34,10 +34,10 @@ bleMiddleware.startListening({
   effect: (_, listenerApi) => {
     bluetoothLeManager.scanForPeripherals((device) => {
       console.log("device", device);
-      if (device.name?.includes("HM") || device.name?.includes("Friyia")) {
+      if (device.name != "" && device.name != null) {
         listenerApi.dispatch(setDevice(device));
       }
-      listenerApi.dispatch(setDevice(device));
+      //listenerApi.dispatch(setDevice(device));
     });
   },
 });
