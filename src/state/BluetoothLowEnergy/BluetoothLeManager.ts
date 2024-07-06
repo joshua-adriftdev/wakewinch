@@ -1,4 +1,4 @@
-import base64 from "react-native-base64";
+import base64, { decode } from "react-native-base64";
 import {
   BleError,
   BleManager,
@@ -14,11 +14,16 @@ export interface DeviceReference {
 // Update the service and characteristic UUIDs
 const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
 const CHARACTERISTIC_WRITE_UUID = "19b10001-e8f2-537e-4f6c-d104768a1215";
+const CHARACTERISTIC_WRITE_LENGTH_UUID = "19b10001-e8f2-537e-4f6c-d104768a1216";
+const CHARACTERISTIC_READ_UUID = "19b10002-e8f2-537e-4f6c-d104768a1217";
 
 class BluetoothLeManager {
   bleManager: BleManager;
   device: Device | null;
   characteristic: Characteristic | null = null;
+  lengthCharacteristic: Characteristic | null = null;
+  _readCharacteristic: Characteristic | null = null;
+  onDataReceived: ((data: string) => void) | null = null;
 
   constructor() {
     this.bleManager = new BleManager();
@@ -53,7 +58,16 @@ class BluetoothLeManager {
           console.log("[General Log] Discovered Characteristic: " + characteristic.uuid);
           if (characteristic.uuid === CHARACTERISTIC_WRITE_UUID) {
             this.characteristic = characteristic;
-            console.log("Found characteristic: ", characteristic.uuid);
+            console.log("Found Write characteristic: ", characteristic.uuid);
+          }
+          if (characteristic.uuid === CHARACTERISTIC_WRITE_LENGTH_UUID) {
+            this.lengthCharacteristic = characteristic;
+            console.log("Found Length characteristic: ", characteristic.uuid);
+          }
+          if (characteristic.uuid === CHARACTERISTIC_READ_UUID) {
+            this._readCharacteristic = characteristic;
+            console.log("Found Read characteristic: ", characteristic.uuid);
+            await this.startNotification();
           }
         }
       }
@@ -83,17 +97,52 @@ class BluetoothLeManager {
     }
   };
 
-  // Functions to control LED based on your Arduino code
-  turnOnLED = async () => {
-    await this.sendString("1");
+  sendLength = async (length: string) => {
+    const data = base64.encode(length);
+    try {
+      if (!this.device) {
+        throw new Error("No connected device");
+      }
+      if (!this.characteristic) {
+        throw new Error("Characteristic not found");
+      }
+      await this.bleManager.writeCharacteristicWithResponseForDevice(
+        this.device.id,
+        SERVICE_UUID,
+        CHARACTERISTIC_WRITE_LENGTH_UUID,
+        data
+      );
+      console.log("Length sent successfully");
+    } catch (error) {
+      console.log("Failed to send length", error);
+    }
   };
 
-  turnOffLED = async () => {
-    await this.sendString("2");
+  startNotification = async () => {
+    if (this._readCharacteristic && this.device) {
+      this.device.monitorCharacteristicForService(
+        SERVICE_UUID,
+        CHARACTERISTIC_READ_UUID,
+        (error, characteristic) => {
+          if (error) {
+            console.error("Notification error", error);
+            return;
+          }
+          console.log("Received a thing");
+          if (characteristic?.value) {
+            const decodedValue = base64.decode(characteristic.value);
+            console.log("Read Value: " + decodedValue)
+            if (this.onDataReceived) {
+              this.onDataReceived(decodedValue);
+            }
+          }
+        }
+      );
+    }
   };
 
-  flashLED = async () => {
-    await this.sendString("3");
+  setOnDataReceived = (callback: (data: string) => void) => {
+    this.onDataReceived = callback;
   };
 }
 

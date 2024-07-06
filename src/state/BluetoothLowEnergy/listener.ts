@@ -2,7 +2,7 @@ import { createAsyncThunk, createListenerMiddleware } from "@reduxjs/toolkit";
 import {
   setConnectedDevice,
   setDevice,
-  setRetrievedColor,
+  setRetrievedNumber,
   startListening,
   startScanning,
 } from "./slice";
@@ -29,6 +29,13 @@ export const sendString = createAsyncThunk(
   }
 );
 
+export const sendLength = createAsyncThunk(
+  "bleThunk/sendString",
+  async (s: string, _) => {
+    await bluetoothLeManager.sendLength(s);
+  }
+);
+
 bleMiddleware.startListening({
   actionCreator: startScanning,
   effect: (_, listenerApi) => {
@@ -42,14 +49,18 @@ bleMiddleware.startListening({
   },
 });
 
-/*bleMiddleware.startListening({
+export const startListeningForData = createAsyncThunk(
+  "bleThunk/startListeningForData",
+  async (_, thunkApi) => {
+    bluetoothLeManager.setOnDataReceived((data: string) => {
+      thunkApi.dispatch(setRetrievedNumber(data));
+    });
+  }
+);
+
+bleMiddleware.startListening({
   actionCreator: startListening,
   effect: (_, listenerApi) => {
-    bluetoothLeManager.startStreamingData(({ payload }) => {
-      console.log("payload", payload);
-      if (typeof payload === "string") {
-        listenerApi.dispatch(setRetrievedColor(payload));
-      }
-    });
+    listenerApi.dispatch(startListeningForData());
   },
-});*/
+});

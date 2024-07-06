@@ -5,14 +5,14 @@ interface BluetoothState {
   allDevices: DeviceReference[];
   currentColor: string;
   connectedDevice: DeviceReference | null;
-  retrievedColor?: string | null;
+  retrievedNumber?: string | null;
 }
 
 const initialState: BluetoothState = {
   allDevices: [],
   currentColor: "#FFFFFF",
   connectedDevice: null,
-  retrievedColor: undefined,
+  retrievedNumber: undefined,
 };
 
 const isDuplicteDevice = (
@@ -37,16 +37,13 @@ const bleState = createSlice({
     setConnectedDevice: (state, action: PayloadAction<DeviceReference>) => {
       state.connectedDevice = action.payload;
     },
-    setRetrievedColor: (
-      state,
-      action: PayloadAction<string | null | undefined>
-    ) => {
-      state.retrievedColor = action.payload;
+    setRetrievedNumber: (state, action: PayloadAction<string | null | undefined>) => {
+      state.retrievedNumber = action.payload;
     },
   },
 });
 
-export const { setDevice, setConnectedDevice, setRetrievedColor } =
+export const { setDevice, setConnectedDevice, setRetrievedNumber } =
   bleState.actions;
 
 export default bleState.reducer;

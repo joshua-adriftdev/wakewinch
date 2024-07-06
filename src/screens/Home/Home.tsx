@@ -4,30 +4,35 @@ import { useDispatch } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../state/store";
 import { useNavigation } from "@react-navigation/native";
 import { startListening } from "../../state/BluetoothLowEnergy/slice";
-import { sendString } from "../../state/BluetoothLowEnergy/listener";
+import { sendLength, sendString } from "../../state/BluetoothLowEnergy/listener";
 
 const { width, height } = Dimensions.get("window");
 
 export const Home = () => {
-  const [s, setS] = useState<string>("1");
-
   const dispatch = useAppDispatch();
 
   const navigation = useNavigation();
 
+  const retrievedNumber = useAppSelector((state) => state.ble.retrievedNumber);
 
   const isConnected = useAppSelector((state) => state.ble.connectedDevice);
 
 
-  const updateString = () => {
-    if (s == "1") {
-      dispatch(sendString("2"));
-      setS("2");
-    } else {
-      dispatch(sendString("1"));
-      setS("1");
-    }
-    
+  const winchIn = () => {
+    dispatch(sendString("in"));
+  }
+
+  const winchOut = () => {
+    dispatch(sendString("out"));
+  }
+
+  const winchStop = () => {
+    dispatch(sendString("stop"));
+  }
+
+  const updateLength = () => {
+    let l = Math.floor(Math.random() * 100) + 1
+    dispatch(sendLength(""+l));
   }
 
   useEffect(() => {
@@ -40,10 +45,67 @@ export const Home = () => {
     <View style={styles.container}>
           {isConnected ? (
             <View>
-              <Text>Home Page</Text>
+              <Text 
+              style={{
+                marginLeft: 20,
+                marginBottom: 20,
+                fontSize: 36,
+              }}
+              >
+                Controls
+              </Text>
+              <Pressable
+                style={({pressed}) => [
+                  {
+                    backgroundColor: pressed ? "#669dde" : "#76B3FA",
+                    marginTop: 40,
+                    marginLeft: 20,
+                    marginRight: 20,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: 70,
+                    borderRadius: 18,
+                  }
+                ]}
+                onPressIn={() => {
+                  winchIn();
+                }}
+                onPressOut={() => {
+                  winchStop();
+                }}
+              >
+                <Text style={{ fontSize: 25, color: "white" }}>
+                  Winch In
+                </Text>
+              </Pressable>
+              <Pressable
+                style={({pressed}) => [
+                  {
+                    backgroundColor: pressed ? "#669dde" : "#76B3FA",
+                    marginTop: 20,
+                    marginLeft: 20,
+                    marginRight: 20,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: 70,
+                    borderRadius: 18,
+                  }
+                ]}
+                onPressIn={() => {
+                  winchOut();
+                }}
+                onPressOut={() => {
+                  winchStop();
+                }}
+              >
+                <Text style={{ fontSize: 25, color: "white" }}>
+                  Winch Out
+                </Text>
+              </Pressable>
               <Pressable
                 style={{
                   backgroundColor: "#76B3FA",
+                  marginTop: 40,
                   marginLeft: 20,
                   marginRight: 20,
                   justifyContent: "center",
@@ -53,13 +115,16 @@ export const Home = () => {
                 }}
                 onPress={() => {
                   // @ts-ignore
-                  updateString();
+                  updateLength();
                 }}
               >
                 <Text style={{ fontSize: 25, color: "white" }}>
-                  Toggle Light ({s})
+                  Send Length
                 </Text>
               </Pressable>
+              <Text style={{fontSize: 20, marginTop: 20, marginLeft: 20}}>
+                Length: {retrievedNumber}
+              </Text>
             </View>
           ) : (
             <View style={styles.container}>
