@@ -9,8 +9,9 @@ import { Read } from "./screens/Read/Read";
 import { Write } from "./screens/Write/Write";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
-import { Connect } from "./screens/Connect/Connect";
+import { ConnectA } from "./screens/Connect/Connect";
 import { requestPermissions } from "./state/BluetoothLowEnergy/utils";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const App = () => {
   useEffect(() => {
@@ -19,7 +20,8 @@ const App = () => {
 
   const Stack = createNativeStackNavigator();
   return (
-    <Provider store={store}>
+    <GestureHandlerRootView style={{ flex: 1}}>
+      <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={Home} />
@@ -28,12 +30,14 @@ const App = () => {
           <Stack.Screen name="Write" component={Write} />
           <Stack.Screen
             name="Connect"
-            component={Connect}
+            component={ConnectA}
             options={{ presentation: "modal" }}
           />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
+    </GestureHandlerRootView>
+    
   );
 };
 

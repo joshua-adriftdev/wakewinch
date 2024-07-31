@@ -1,11 +1,12 @@
 import { PayloadAction, createAction, createSlice } from "@reduxjs/toolkit";
-import { DeviceReference } from "./BluetoothLeManager";
+import { DeviceReference, Settings } from "./BluetoothLeManager";
 
 interface BluetoothState {
   allDevices: DeviceReference[];
   currentColor: string;
   connectedDevice: DeviceReference | null;
   retrievedNumber?: string | null;
+  settings?: Settings | null;
 }
 
 const initialState: BluetoothState = {
@@ -13,6 +14,7 @@ const initialState: BluetoothState = {
   currentColor: "#FFFFFF",
   connectedDevice: null,
   retrievedNumber: undefined,
+  settings: null,
 };
 
 const isDuplicteDevice = (
@@ -40,10 +42,16 @@ const bleState = createSlice({
     setRetrievedNumber: (state, action: PayloadAction<string | null | undefined>) => {
       state.retrievedNumber = action.payload;
     },
+    setSettings: (state, action: PayloadAction<Settings | null | undefined>) => {
+      state.settings = action.payload;
+    },
+    setDisconnected: (state) => {
+      state.connectedDevice = null;
+    },
   },
 });
 
-export const { setDevice, setConnectedDevice, setRetrievedNumber } =
+export const { setDevice, setConnectedDevice, setRetrievedNumber, setSettings, setDisconnected } =
   bleState.actions;
 
 export default bleState.reducer;

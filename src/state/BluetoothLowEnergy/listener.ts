@@ -3,11 +3,12 @@ import {
   setConnectedDevice,
   setDevice,
   setRetrievedNumber,
+  setSettings,
   startListening,
   startScanning,
 } from "./slice";
 
-import bluetoothLeManager, { DeviceReference } from "./BluetoothLeManager";
+import bluetoothLeManager, { DeviceReference, Settings } from "./BluetoothLeManager";
 
 export const bleMiddleware = createListenerMiddleware();
 
@@ -36,12 +37,19 @@ export const sendLength = createAsyncThunk(
   }
 );
 
+export const sendSettings = createAsyncThunk(
+  "bleThunk/sendSettings",
+  async (s: Settings, _) => {
+    await bluetoothLeManager.sendSettings(s);
+  }
+);
+
 bleMiddleware.startListening({
   actionCreator: startScanning,
   effect: (_, listenerApi) => {
     bluetoothLeManager.scanForPeripherals((device) => {
-      console.log("device", device);
-      if (device.name != "" && device.name != null) {
+      //console.log("device", device);
+      if (device.name != "" && device.name != null && (device.name.toLowerCase().includes("(WW267)".toLowerCase()))) {
         listenerApi.dispatch(setDevice(device));
       }
       //listenerApi.dispatch(setDevice(device));
@@ -58,9 +66,25 @@ export const startListeningForData = createAsyncThunk(
   }
 );
 
+export const startListeningForSettings = createAsyncThunk(
+  "bleThunk/startListeningForSettings",
+  async (_, thunkApi) => {
+    bluetoothLeManager.setOnSettingsReceived((settings: Settings) => {
+      thunkApi.dispatch(setSettings(settings));
+    });
+  }
+);
+
 bleMiddleware.startListening({
   actionCreator: startListening,
   effect: (_, listenerApi) => {
     listenerApi.dispatch(startListeningForData());
+  },
+});
+
+bleMiddleware.startListening({
+  actionCreator: startListening,
+  effect: (_, listenerApi) => {
+    listenerApi.dispatch(startListeningForSettings());
   },
 });

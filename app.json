@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "wakewinch",
+    "name": "WakeWinch",
     "slug": "wakewinch",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#3A93F8"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#3A93F8"
       },
       "permissions": [
         "android.permission.BLUETOOTH",
@@ -45,6 +45,11 @@
           "bluetoothAlwaysPermission": "Allow ${PRODUCT_NAME} to connect to bluetooth devices"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e68a8c26-dbf9-4637-8cf4-e117c51d6ce4"
+      }
+    }
   }
 }

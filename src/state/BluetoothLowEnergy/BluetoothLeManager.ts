@@ -5,10 +5,19 @@ import {
   Characteristic,
   Device,
 } from "react-native-ble-plx";
+import {store} from "../store"
+import { setDisconnected } from "./slice";
 
 export interface DeviceReference {
   name?: string | null;
   id?: string;
+}
+
+export type Settings = {
+  fine: boolean,
+  length: number,
+  interval: number,
+  safety: boolean,
 }
 
 // Update the service and characteristic UUIDs
@@ -17,13 +26,22 @@ const CHARACTERISTIC_WRITE_UUID = "19b10001-e8f2-537e-4f6c-d104768a1215";
 const CHARACTERISTIC_WRITE_LENGTH_UUID = "19b10001-e8f2-537e-4f6c-d104768a1216";
 const CHARACTERISTIC_READ_UUID = "19b10002-e8f2-537e-4f6c-d104768a1217";
 
+// Settings
+const CHARACTERISTIC_WRITE_SETTING = "19b10001-e8f2-537e-4f6c-d104768a1218";
+const CHARACTERISTIC_READ_SETTING = "19b10002-e8f2-537e-4f6c-d104768a1219";
+
+
 class BluetoothLeManager {
   bleManager: BleManager;
   device: Device | null;
   characteristic: Characteristic | null = null;
   lengthCharacteristic: Characteristic | null = null;
   _readCharacteristic: Characteristic | null = null;
+  settingsCharacteristic: Characteristic | null = null;
+  settingsReadCharacteristic: Characteristic | null = null;
   onDataReceived: ((data: string) => void) | null = null;
+  onSettingsReceived: ((settings: Settings) => void) | null = null;
+  onSafetyEngaged: (() => void) | null = null;
 
   constructor() {
     this.bleManager = new BleManager();
@@ -69,8 +87,22 @@ class BluetoothLeManager {
             console.log("Found Read characteristic: ", characteristic.uuid);
             await this.startNotification();
           }
+          if (characteristic.uuid === CHARACTERISTIC_WRITE_SETTING) {
+            this.settingsCharacteristic = characteristic;
+            console.log("Found Settings characteristic: ", characteristic.uuid);
+          }
+          if (characteristic.uuid === CHARACTERISTIC_READ_SETTING) {
+            this.settingsReadCharacteristic = characteristic;
+            console.log("Found Read Settings characteristic: ", characteristic.uuid);
+            await this.startSettingsNotification();
+          }
         }
       }
+
+      this.device.onDisconnected(() => {
+        store.dispatch(setDisconnected());
+        console.log("Device disconnected");
+      });
     } catch (error) {
       console.log("Failed to connect to device", error);
     }
@@ -118,6 +150,29 @@ class BluetoothLeManager {
     }
   };
 
+  sendSettings = async (message: Settings) => {
+    //const data = base64.encode(message);
+    const data = base64.encode(JSON.stringify(message));
+    console.log("data", data);
+    try {
+      if (!this.device) {
+        throw new Error("No connected device");
+      }
+      if (!this.characteristic) {
+        throw new Error("Characteristic not found");
+      }
+      await this.bleManager.writeCharacteristicWithResponseForDevice(
+        this.device.id,
+        SERVICE_UUID,
+        CHARACTERISTIC_WRITE_SETTING,
+        data
+      );
+      console.log("Data sent successfully");
+    } catch (error) {
+      console.log("Failed to send data", error);
+    }
+  };
+
   startNotification = async () => {
     if (this._readCharacteristic && this.device) {
       this.device.monitorCharacteristicForService(
@@ -141,11 +196,56 @@ class BluetoothLeManager {
     }
   };
 
+  startSettingsNotification = async () => {
+    console.log("Check 1");
+    if (this.settingsReadCharacteristic && this.device) {
+      console.log("Check 2");
+      this.device.monitorCharacteristicForService(
+        SERVICE_UUID,
+        CHARACTERISTIC_READ_SETTING,
+        (error, characteristic) => {
+          console.log("Check 3");
+          if (error) {
+            console.error("Notification error", error);
+            return;
+          }
+          console.log("Received settings");
+          if (characteristic?.value) {
+            const decodedValue = base64.decode(characteristic.value);
+            console.log("Read Settings Value: " + decodedValue)
+            if (decodedValue == "safe") {
+              if (this.onSafetyEngaged) {
+                this.onSafetyEngaged();
+              }
+            } else if (this.onSettingsReceived) {
+              const s: Settings = JSON.parse(decodedValue);
+              s.interval = roundToTwoDecimalPlaces(s.interval);
+              s.length = roundToTwoDecimalPlaces(s.length);
+              this.onSettingsReceived(s);
+            }
+          }
+        }
+      );
+    }
+  };
+
   setOnDataReceived = (callback: (data: string) => void) => {
     this.onDataReceived = callback;
   };
+
+  setOnSettingsReceived = (callback: (settings: Settings) => void) => {
+    this.onSettingsReceived = callback;
+  };
+
+  setOnSafetyEngaged = (callback: () => void) => {
+    this.onSafetyEngaged = callback;
+  }
 }
 
 const manager = new BluetoothLeManager();
+
+function roundToTwoDecimalPlaces(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 export default manager;

@@ -1,27 +1,28 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useAppDispatch, useAppSelector } from "../../state/store";
-import { startScanning } from "../../state/BluetoothLowEnergy/slice";
-import { connectToDevice } from "../../state/BluetoothLowEnergy/listener";
 
-export const ConnectA = () => {
-  const nav = useNavigation();
+import { useNavigation } from "@react-navigation/native";
+import { useAppDispatch, useAppSelector } from "../state/store";
+import { startScanning } from "../state/BluetoothLowEnergy/slice";
+import { connectToDevice } from "../state/BluetoothLowEnergy/listener";
+
+export const Connect = () => {
   const dispatch = useAppDispatch();
   const discoveredDevices = useAppSelector((state) => state.ble.allDevices);
 
   useEffect(() => {
+    console.log("Scanning...");
     dispatch(startScanning());
   }, []);
 
   const onDeviceSelected = (deviceId: any) => {
     dispatch(connectToDevice(deviceId));
-    nav.goBack();
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.deviceTxt}>Devices</Text>
+      <Text style={{fontWeight: "600", fontSize: 32, color: "#0A2543", marginTop: 10}}>Available Devices</Text>
+      <Text style={{fontWeight: "400", fontSize: 16, color: "#0A2543"}}>Select your WakeWinch to connect</Text>
       <FlatList
         style={styles.list}
         data={discoveredDevices}
@@ -30,16 +31,9 @@ export const ConnectA = () => {
             onDeviceSelected(item);
           };
 
-          const _name = item.name || "WakeWinch";
-          const name = _name.replace(/\s*\(WW267\)\s*/g, ""); // Use regular expression for global replacement
-
-          // Debugging
-          console.log("Original name:", _name);
-          console.log("Processed name:", name);
-
           return (
             <Pressable style={styles.deviceBtn} onPress={selectDevice}>
-              <Text style={styles.deviceTxt}>{name}</Text>
+              <Text style={styles.deviceTxt}>{item.name?.replaceAll(" (WW267)", "")}</Text>
             </Pressable>
           );
         }}
@@ -51,24 +45,23 @@ export const ConnectA = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-  },
-  list: {
-    marginTop: 30,
-    flex: 1,
     marginHorizontal: 20,
   },
+  list: {
+    marginTop: 10,
+    flex: 1,
+  },
   deviceBtn: {
-    backgroundColor: "#76B3FA",
-    height: 70,
+    backgroundColor: "#3A93F8",
     justifyContent: "center",
+    marginTop: 20,
+    height: 70,
     borderRadius: 15,
   },
   deviceTxt: {
-    marginTop: 30,
-    color: "#000",
+    color: "#FFF",
     textAlign: "center",
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 24,
+    fontWeight: "400",
   },
 });
