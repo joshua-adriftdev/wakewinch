@@ -9,8 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PresetsModal from "../../components/Presets"; // Ensure the path is correct based on your file structure
 import Wave from "../../components/Wave";
 import images from '../../../assets/images'
-import { rgbaColor } from "react-native-reanimated/lib/typescript/Colors";
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Connect } from "../../components/Connect";
 import { Controls } from "../../components/Controls";
 import SettingsModal from "../../components/Settings";
@@ -116,7 +115,7 @@ export const Home = () => {
           onPress={toggleSettings}
           style={{ position: "absolute", top: 60, right: 20, display: isConnected ? 'flex' : 'none' }}
         >
-          <FontAwesome6 name="gear" size={32} color="white" style={{}}/>
+          <FontAwesome5 name="gear" size={32} color="white" style={{}}/>
         </TouchableOpacity>
         <View style={{backgroundColor: 'rgba(255, 255, 255, 0.7)', position: "absolute", top: 132, left: 20, borderRadius: 100, padding: 7, paddingHorizontal: 20, flex: 1, flexDirection: "row", gap: 10, alignItems: "center"}}>
           <View style={{backgroundColor: (isConnected ? "#28A745" : "#FF7C3B"), width: 12.5, height: 12.5, borderRadius: 100}}>
